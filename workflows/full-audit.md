@@ -48,12 +48,26 @@ Drift concentrates in the tail: troubleshooting sections, version histories, FAQ
 **Above that, tier explicitly and say so.** A rule demanding the impossible gets silently ignored, which is worse than a rule that admits its limits:
 
 - **Tier 1 — always read in full.** Entry points: root `README.md`, `CLAUDE.md`, `CONTEXT.md`, `CONTRIBUTING.md`, plus any doc index. These carry the claims a new reader meets first, so their drift costs the most.
-- **Tier 2 — read in full, delegated.** Every doc that Tier 1 links to or that a documented command names. One Explore agent per 2–3 files.
+- **Tier 2 — read in full, delegated.** Every doc that Tier 1 links to or that a documented command names. One Explore agent per 2–3 files, or per coherent directory.
 - **Tier 3 — indexed, not read.** Everything else. Record the count, verify their *existence* as link targets, and state plainly that their contents were not audited.
 
 Never present a tiered audit as comprehensive. The report's scope section must name the tiers and the Tier 3 count.
 
 When delegating: subagents **report claims** with file and line; the main thread **adjudicates**. Keep the ground-truth set in the main context. A subagent's confidence is not evidence — treat every delegated claim as LOW until verified centrally.
+
+**Delegate extraction to a cheap model; keep adjudication on the strong one.**
+
+```
+Agent(subagent_type='Explore', model='haiku', prompt=<extraction prompt>)
+```
+
+Extraction is mechanical transcription — `file:line | verbatim quote | claim type` — with judgment explicitly forbidden. That is the cheapest possible workload, and a large doc set is exactly where the token cost concentrates: one real audit spent ~95k subagent tokens on three readers alone.
+
+Adjudication must stay on the session's strong model. It is where the false-positive risk lives: deciding which source wins, running the absence protocol, distinguishing a floor claim (`200+`, still true at 1916) from a false one, and noticing that a naive `rg -c` double-counts. Those are the judgments this skill exists to get right, and they are not cheap work.
+
+The split is safe **because** the reader is forbidden to verify. If a cheap reader miscopies a line number or hallucinates a path, the central verification step catches it — every delegated claim is re-checked against the filesystem before it can reach a finding. Do not give a delegated reader verification authority in order to save a round trip; that removes the check that makes the cheap model safe.
+
+**Require every reader to state what it could not read.** A reader that silently truncates turns a partial audit into an apparently complete one.
 
 While reading, extract every checkable claim into a list: file, line, claim, claim type.
 </step>
