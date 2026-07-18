@@ -35,11 +35,17 @@ Copy from the actual file read. Never reconstruct a quote from memory of having 
 </rule>
 
 <rule name="Line numbers are printed, not estimated">
-Before citing `file:line` or a range, print it:
+Before citing `file:line` or a range, print it and read the output:
 ```bash
-sed -n '29,40p' FILE | cat -n
+sed -n '29,40p' FILE | cat -n     # confirm the range starts where you claim
+rg -n 'exact quoted text' FILE    # or let ripgrep supply the number
 ```
-Off-by-one citations are not fabrications, but they force the reader to hunt, and they signal that the rest of the numbers were not checked either. A cited range must start where the quoted content starts.
+
+Prefer `rg -n` over `sed` — it derives the number from the content instead of asking you to guess a range and check it afterwards.
+
+Off-by-one citations are not fabrications, but they force the reader to hunt, and they signal that the remaining numbers were not checked either.
+
+**Observed:** an issue cited `PROJECT_INSTRUCTIONS.md:32-40` for a section whose heading is on line 31 and whose items run 33–40. Nobody was misled, but the citation was written from an impression of the file rather than from its output — which is the same mechanism that produces fabricated evidence, operating on something harmless.
 </rule>
 
 <rule name="Output is pasted, never reconstructed">

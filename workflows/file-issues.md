@@ -60,10 +60,22 @@ Re-running an audit must not duplicate issues. Every issue this workflow creates
 
 The slug is derived from the finding's identity, not its wording — `{class}-{primary-file}-{key}`, e.g. `stale-gap-table-CLAUDE.md`, `version-mismatch-pyproject.toml`. It must stay identical across runs.
 
+**Do not use `--search` for this.** GitHub's issue search is fuzzy and full-text; it matches on relevance, not literal substring. Searching `"audit-docs-id"` on a repo with no audit issues returned an unrelated bug report — which, taken at face value, would have suppressed a real finding as a duplicate.
+
+List issues and test the body yourself:
+
 ```bash
-gh issue list --repo "$REPO" --state all --search "audit-docs-id" --limit 100 \
-  --json number,title,state,body \
-  --jq '.[] | select(.body | test("audit-docs-id: ")) | "\(.number)\t\(.state)\t\(.title)"'
+gh issue list --repo "$REPO" --state all --limit 200 --json number,title,state,body \
+  --jq '[.[] | select(.body != null and (.body | test("audit-docs-id: ")))]
+        | if length==0 then "0 existing audit-docs issues"
+          else (.[] | "\(.number)\t\(.state)\t\(.title)") end'
+```
+
+Extract each marker's slug to match against your findings:
+```bash
+gh issue list --repo "$REPO" --state all --limit 200 --json number,body \
+  --jq '.[] | select(.body != null and (.body | test("audit-docs-id: ")))
+        | "\(.number) -> \(.body | capture("audit-docs-id: (?<id>[a-zA-Z0-9._-]+)").id)"'
 ```
 
 For each finding, classify:

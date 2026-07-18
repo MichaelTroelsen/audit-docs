@@ -40,12 +40,36 @@ Then run the ecosystem-appropriate commands from `references/verification.md` to
 Record these as the reference set. Every later claim is checked against it.
 </step>
 
-<step n="3" name="Read every document in full">
-Read each file completely — not the first 100 lines. Drift concentrates in the tail: troubleshooting sections, version histories, FAQ entries, the fourth copy of a table.
+<step n="3" name="Read the documents — tiered by scale">
+Drift concentrates in the tail: troubleshooting sections, version histories, FAQ entries, the fourth copy of a table. Reading the first 100 lines of a 1000-line README finds nothing.
 
-For large inventories, delegate with the Explore agent, one agent per 2–3 files, instructing each to **read in full** and report claims with file and line. Keep the ground-truth set in the main context and do the verification there — subagents report claims, the main thread adjudicates.
+**Under ~20 files / ~150 KB:** read every file completely. No tiering.
+
+**Above that, tier explicitly and say so.** A rule demanding the impossible gets silently ignored, which is worse than a rule that admits its limits:
+
+- **Tier 1 — always read in full.** Entry points: root `README.md`, `CLAUDE.md`, `CONTEXT.md`, `CONTRIBUTING.md`, plus any doc index. These carry the claims a new reader meets first, so their drift costs the most.
+- **Tier 2 — read in full, delegated.** Every doc that Tier 1 links to or that a documented command names. One Explore agent per 2–3 files.
+- **Tier 3 — indexed, not read.** Everything else. Record the count, verify their *existence* as link targets, and state plainly that their contents were not audited.
+
+Never present a tiered audit as comprehensive. The report's scope section must name the tiers and the Tier 3 count.
+
+When delegating: subagents **report claims** with file and line; the main thread **adjudicates**. Keep the ground-truth set in the main context. A subagent's confidence is not evidence — treat every delegated claim as LOW until verified centrally.
 
 While reading, extract every checkable claim into a list: file, line, claim, claim type.
+</step>
+
+<step n="3b" name="Defer to the project's own verification agent">
+Check for one before adjudicating anything measurement-shaped:
+
+```bash
+ls .claude/agents/ 2>/dev/null
+```
+
+If the project ships a verification, falsification, or fidelity agent, **route domain claims to it** rather than adjudicating them yourself. It encodes knowledge this skill does not have — which metrics are meaningful, which denominators are legitimate, what counts as reproduction.
+
+This matters most where verifying a claim would require running the product: accuracy percentages, fidelity scores, benchmark figures. Those commands have side effects and long runtimes, so this skill must not run them. Without the project's own agent, such claims belong in **Unverifiable** — not in findings.
+
+Two failure modes to avoid: duplicating an existing agent's work with weaker tools, and contradicting its verdict from a position of less knowledge.
 </step>
 
 <step n="4" name="Verify each claim">

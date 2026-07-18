@@ -81,6 +81,42 @@ rg -c 'navigator.clipboard' known-good.html   # must be > 0, or the pattern is w
 Only after all four does an absence claim reach HIGH.
 </absence_protocol>
 
+<blind_spots>
+Text search cannot see inside every file. A clean scan over a directory containing these proves nothing about their contents:
+
+| Format | Why grep misses it |
+|---|---|
+| `.zip`, `.rar`, `.tar.gz` | compressed — contents are not text on disk |
+| `.pdf`, `.docx`, `.xlsx` | binary containers |
+| `.db`, `.sqlite` | binary |
+| minified/bundled JS, source maps | text, but single-line and effectively unsearchable |
+| git history | `rg` reads the working tree, not past commits |
+
+**Observed:** a secrets scan over a project reported clean while `files.zip` in the same directory contained a `.mcp.json`. It turned out to hold a placeholder, but a real credential would have been missed identically.
+
+Before reporting a repository-wide scan clean, enumerate what could not be searched:
+
+```bash
+find . -type f \( -name '*.zip' -o -name '*.rar' -o -name '*.pdf' -o -name '*.docx' \
+  -o -name '*.xlsx' -o -name '*.db' -o -name '*.sqlite*' \) \
+  -not -path '*/node_modules/*' -not -path '*/.venv/*' 2>/dev/null
+
+# open the archives that could plausibly carry config
+python -c "
+import zipfile,sys
+z=zipfile.ZipFile(sys.argv[1])
+for n in z.namelist(): print(n)
+" ARCHIVE.zip
+```
+
+For secrets specifically, also scan history, not just the tree:
+```bash
+git log --all -p -- .env .mcp.json config.json 2>/dev/null | rg -c 'sk-ant|ghp_|AKIA' || echo 0
+```
+
+State the blind spots in the report. "No secrets found in tracked text files; 3 archives and 2 PDFs were not searched" is honest. "No secrets found" is not.
+</blind_spots>
+
 <shell_caveat>
 `rg -c` prints **nothing** and exits non-zero when there are no matches — it does not print `0`. In a loop or table this silently produces blank cells that read as "not checked" or misalign the output entirely.
 

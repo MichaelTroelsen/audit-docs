@@ -86,6 +86,24 @@ When a project's own documentation already states the rule being violated, quote
 The same applies to post-mortems: if the docs describe a past bug caused by two copies of a mapping drifting apart, and the audit finds that exact pattern elsewhere, name the parallel. It is the most actionable framing available, because the user already believes it.
 </framing>
 
+<not_findings>
+Some things look like findings and are not. Reporting them punishes exactly the behaviour an audit should encourage.
+
+**A "Known limitations" section is not a finding.** A project that documents its own weak spots is doing the right thing. Audit whether each stated limitation is still *true* — several will have been fixed — but never report the section's existence as a problem.
+
+**Honest hedging is not a finding.** "Captured, not modelled", "this metric is window-dependent", "not reproducible from a fresh clone" — these are the marks of documentation worth trusting. Quote them approvingly when summarising; they are the standard other projects should meet.
+
+**A TODO that is still open is not a finding.** It is a plan. Only a TODO describing work already *done* is drift.
+
+**Deliberate archival is not a finding.** Files in `archive/` are not missing. The finding is a live document *pointing* at them as if current.
+
+**Aspirational roadmaps are not findings.** A roadmap marking something planned is correct until the thing ships. Only a roadmap contradicting itself, or contradicting the code, qualifies.
+
+**Personal-project conventions are not findings.** Hardcoded paths, machine-specific config, and missing LICENSE in a repo that is plainly a personal tool are choices, not defects. Note them at P3 with the caveat; escalate only on evidence the project invites outside use.
+
+If an audit's top findings are all of this shape, it has found nothing and should say so. "The documentation is in good condition; here are three small corrections" is a legitimate and valuable result.
+</not_findings>
+
 <tone>
 Report findings as observations with evidence, not as criticism. The user wrote these docs; drift is the normal entropy of an evolving project, not negligence.
 
