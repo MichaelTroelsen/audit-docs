@@ -1,0 +1,11 @@
+# Audit output — belongs to the audited project, not to this skill
+DOC-AUDIT.md
+DOC-AUDIT-PORTFOLIO.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Windows shell redirect artefact
+nul
