@@ -19,7 +19,7 @@ In its first real runs this skill found a CI pipeline that had been failing for 
 Clone into your Claude Code skills directory:
 
 ```bash
-git clone https://github.com/<you>/audit-docs.git ~/.claude/skills/audit-docs
+git clone https://github.com/MichaelTroelsen/audit-docs.git ~/.claude/skills/audit-docs
 ```
 
 Optionally add the slash command:
