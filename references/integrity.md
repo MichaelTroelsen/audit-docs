@@ -106,6 +106,33 @@ Actions this skill must never take without being asked in the current session:
 **Stay inside the audited project.** Do not read or report on files outside its root, even when a path in the docs points there.
 </operational_limits>
 
+<destructive_command_traps>
+Learned by doing damage, not by reasoning about it.
+
+**Case-insensitive filesystems make `rm` wider than it looks.** On Windows and macOS,
+`Foo_ANNOTATED.html` and `foo_annotated.html` are the same file.
+
+**Observed** (SIDM2, 2026-07-18): a tool was run to verify a restored script; it wrote
+`Stinsens_..._ANNOTATED.html`, which silently **overwrote the tracked**
+`Stinsens_..._annotated.html`. Cleaning up "my" generated file then deleted a repository file.
+Recovered with `git checkout --` and confirmed identical to `HEAD` — but only because the tree was
+otherwise clean and the damage was noticed immediately.
+
+Before removing anything a verification step produced:
+
+```bash
+git status --porcelain           # is anything tracked now modified or deleted?
+git ls-files --error-unmatch PATH 2>/dev/null && echo "TRACKED - do not rm"
+```
+
+Prefer letting generated files sit. An untracked artifact left behind is a smaller problem than a
+deleted tracked one, and `git status` will show it.
+
+**Running a tool to verify a fix has side effects.** The same run also created a stray root-level
+config file. Verification is worth it — but check `git status` afterwards and clean up deliberately,
+knowing which files are yours.
+</destructive_command_traps>
+
 <privacy>
 A public issue is a publication.
 

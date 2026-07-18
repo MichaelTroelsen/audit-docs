@@ -72,6 +72,7 @@ Ask the user:
 3. **Portfolio sweep** — audit several projects and report across all of them
 4. **File issues** — turn findings into GitHub issues an agent can act on later
 5. **Apply fixes** — edit the files directly, after an approval gate
+6. **Harvest learnings** — fold past audits' Learnings sections into `references/`
 
 If the user's invocation already makes the intent clear (e.g. "audit the docs in this repo", "check all my projects", `--issues`, `--fix`), skip the question and route directly.
 
@@ -86,6 +87,7 @@ If the user's invocation already makes the intent clear (e.g. "audit the docs in
 | 3, "portfolio", "sweep", "all projects", multiple paths | `workflows/portfolio-sweep.md` |
 | 4, "issues", "file issues", "github", `--issues` | `workflows/file-issues.md` |
 | 5, "fix", "apply", `--fix` | `workflows/apply-fixes.md` |
+| 6, "harvest", "learnings", "update the skill", `--harvest` | `workflows/harvest-learnings.md` |
 
 Read the workflow, then follow it exactly.
 
@@ -113,6 +115,7 @@ Domain knowledge in `references/`:
 - **verification.md** — concrete commands for establishing ground truth per ecosystem
 - **confidence.md** — HIGH/MEDIUM/LOW rules, the absence protocol, shell traps
 - **severity.md** — the P0–P3 ranking rules and what qualifies for each
+- **run-log.md** — the per-run dataset (`runs.jsonl`): schema, and the honest limits on what a run can measure about itself
 </reference_index>
 
 <workflows_index>
@@ -123,10 +126,13 @@ Domain knowledge in `references/`:
 | portfolio-sweep.md | Parallel audit across many projects, plus cross-project patterns |
 | file-issues.md | File findings as agent-executable GitHub issues, with a security gate |
 | apply-fixes.md | Apply confirmed findings to the working tree, with an approval gate |
+| harvest-learnings.md | Fold past audits' Learnings sections into `references/` — the skill's feedback loop |
 </workflows_index>
 
 <output>
 Findings are written to `DOC-AUDIT.md` in the audited project's root, using `templates/audit-report.md`.
+
+**The report's Learnings section is mandatory and is filled during the audit, not afterwards.** It captures near-misses, environment traps and rule gaps at the moment they are discovered — a closing step competes with finishing the report and loses. `/audit-docs --harvest` later folds those rows into `references/`. A skill that does not learn from its own runs decays exactly like the documentation it audits.
 
 The file is a snapshot, not an accumulating log — overwrite it on each run and let git hold the history. Add it to `.gitignore` if the user prefers it uncommitted.
 </output>

@@ -86,6 +86,24 @@ When a project's own documentation already states the rule being violated, quote
 The same applies to post-mortems: if the docs describe a past bug caused by two copies of a mapping drifting apart, and the audit finds that exact pattern elsewhere, name the parallel. It is the most actionable framing available, because the user already believes it.
 </framing>
 
+<floor_claims>
+**A count written with `+` is a floor, and a floor is not falsified by a larger number.**
+
+**Observed** (SIDM2, 2026-07-18): docs claimed `1,400+`, `233+`, `200+` and `164+` tests. Ground
+truth was **1916 collected**. Every one of those is literally true. Reporting them as wrong would
+have been four false findings.
+
+What *is* reportable, and was:
+- **One file contradicting itself** — `CLAUDE.md` stated `164+` on line 12 and `200+` on line 44 for
+  the same command. Two different floors for one number proves nobody maintains it.
+- **An approximation with no `+`** — `~37 active scripts` against 528 actual. `~` claims proximity;
+  it was wrong by more than an order of magnitude.
+- **The useful figure appearing nowhere.** Four floors, and not one told a reader the real number.
+
+Rank a stale floor **P2 or P3**: a maintenance signal, not a correctness defect. Say so in the
+finding, or the reader will "fix" four numbers that were never false.
+</floor_claims>
+
 <not_findings>
 Some things look like findings and are not. Reporting them punishes exactly the behaviour an audit should encourage.
 

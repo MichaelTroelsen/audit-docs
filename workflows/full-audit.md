@@ -11,6 +11,16 @@ Read these now:
 
 <process>
 
+<step n="0" name="Start the clock">
+Before anything else — duration cannot be recovered afterwards:
+
+```bash
+RUN_START=$(date +%s); RUN_STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+```
+
+Note the model in use, and the model you will give delegated readers. See `references/run-log.md`.
+</step>
+
 <step n="1" name="Inventory">
 List every in-scope document with its size. Size drives the reading plan — a 40 KB README needs multiple reads.
 
@@ -114,7 +124,18 @@ Rank by consequence using `references/severity.md`, applying the escalation rule
 Write the report to `DOC-AUDIT.md` using `templates/audit-report.md`. Overwrite any existing file — git holds the history.
 </step>
 
-<step n="7" name="Summarize in conversation">
+<step n="7" name="Append the run to the log">
+Append one row to `~/.claude/skills/audit-docs/runs.jsonl` using the schema in
+`references/run-log.md`.
+
+Build it from values measured during this run. `tokens_main` is `null` — the assistant cannot
+observe its own main-thread usage, and a guess in this file would later be averaged as if measured.
+`tokens_sub` comes from the delegated readers' completion notifications and **is** recorded.
+
+Redact the project name if the repository is private and the log lives in a public skill repo.
+</step>
+
+<step n="8" name="Summarize in conversation">
 Give the user, in chat:
 - Count of findings by severity
 - The three highest-consequence findings, stated plainly
@@ -122,6 +143,8 @@ Give the user, in chat:
 - What was checked and found clean
 
 Do not paste the whole report — it is on disk. If `--fix` was requested, chain to `workflows/apply-fixes.md`.
+
+End by stating the run-log row: duration, findings, and whether `tokens_main` still needs filling in from Claude Code's usage reporting.
 </step>
 
 </process>

@@ -206,6 +206,64 @@ rg -n 'never commit|do not commit|gitignore' *.md            # implies VCS that 
 
 ---
 
+<class id="13" name="Ignored file archived into the repository">
+**Shape:** A file is correctly listed in `.gitignore`, and a **copy of it is committed inside an
+archive** — a `.zip`, a backup tarball, a vendored bundle. The ignore rule holds for the path and is
+silently bypassed for the copy.
+
+**Detection:** `git check-ignore` cannot see inside archives, and neither can a secrets scan.
+Enumerate and open them:
+
+```bash
+git ls-files | rg '\.(zip|tar|tar\.gz|tgz|rar|7z)$'
+python -c "
+import zipfile,sys
+z=zipfile.ZipFile(sys.argv[1])
+for n in z.namelist(): print(n)
+" ARCHIVE.zip
+```
+Then check each entry against the ignore rules:
+```bash
+git check-ignore -v NAME_FROM_ARCHIVE
+```
+
+**Observed** (discogs, 2026-07-18): `.mcp.json` was gitignored specifically so a Discogs token could
+never reach history — the `.gitignore` was deliberately written *before* `git init`. A tracked
+`files.zip` contained a copy of that same `.mcp.json`. It held a **placeholder** (15 characters; a
+real token is 40), so nothing leaked — but by the accident of when the archive was made, not by
+design.
+
+**Report as P2** when the archived copy is currently benign, naming the bypass rather than the
+contents. **P0** if it holds a real credential.
+
+**Related:** the archive was also redundant — its `CLAUDE.md` was 72 lines against a current 186, and
+both it and `.gitignore` were tracked separately. Archives of tracked files rot invisibly.
+</class>
+
+<class id="14" name="A doc-drift guard is the strongest predictor of clean docs">
+Not a defect class — a **countermeasure**, recorded because it is the most effective one observed.
+
+**Measured across six audits, 2026-07-18:** findings per project were 17, 15, 9, 7, 4, 2. The
+**lowest** was `siddetector2`, the only project shipping a machine check that its documentation still
+matches the source: `scripts/check_memorymap.py`, wired into `make ci`. It was executed during that
+audit and reported **0 drift** across 65 matched entries.
+
+Its single real finding was a test count in `TODO.md` — the one number **not** covered by a guard.
+
+Look for one early; it changes what the audit is for:
+
+```bash
+rg -l 'check.*doc|doc.*check|verify.*readme|memorymap' Makefile .github/workflows/ scripts/ 2>/dev/null
+```
+
+If a project has such a guard, **run it and report the result**. If it passes, say so — that is a
+strong clean signal, and re-adjudicating what it already covers wastes the audit.
+
+If a project has none, the strongest recommendation available is usually to build one, and this
+correlation is the evidence for it. One measurement is a hypothesis, not a law — record it in
+`runs.jsonl` and keep counting.
+</class>
+
 <secrets_check>
 Always run, regardless of workflow. Documentation audits routinely surface credentials, because config examples get filled in with real values.
 

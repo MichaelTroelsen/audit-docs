@@ -81,6 +81,47 @@ rg -c 'navigator.clipboard' known-good.html   # must be > 0, or the pattern is w
 Only after all four does an absence claim reach HIGH.
 </absence_protocol>
 
+<counting_trap>
+**Count identities, not matching lines.** A name assigned in both a `try` and an `except ImportError`
+branch — the standard optional-import idiom — appears twice, so a line count doubles it.
+
+**Observed** (SIDM2, 2026-07-18): `rg -c '_AVAILABLE\s*='` returned **26** against **13** real flags.
+Reported against a doc claiming 12, that becomes a dramatic "26 vs 12" finding that does not exist.
+The true finding was off-by-one: the list omitted one flag.
+
+```bash
+rg -o '(\w+_AVAILABLE)\s*=' -r '$1' FILE | sort -u | wc -l    # identities
+rg -c '_AVAILABLE\s*=' FILE                                   # lines - NOT the same question
+```
+
+Applies to any repeated assignment: platform branches, feature detection, re-exports. Before
+reporting a count mismatch, ask what the doc is counting — things, or mentions of things.
+</counting_trap>
+
+<pattern_capability>
+**Before trusting a zero, ask whether the pattern could ever have matched.** Some patterns are
+structurally incapable, not merely unlucky — and those produce the most convincing false findings,
+because the search looks correct.
+
+**Observed** (discogs, 2026-07-18), two in a single audit:
+
+| Pattern | Returned | Truth | Why it could never match |
+|---|---|---|---|
+| `flags\.[a-zA-Z]+` for `--dry-run` | 0 | exists | A hyphenated key **cannot** be reached with dot notation. `flags["dry-run"]` is the only legal form, so the pattern was incapable by construction. |
+| `//\s*[A-Z][A-Z ]{2,}` for a `// DATA` marker | 0 | exists | The real marker is `// -- DATA ---`. Box-drawing characters sit between the slashes and the word, so `\s*` never reaches the capital. |
+
+Both would have accused correct documentation of describing something that does not exist — the
+inverse of this skill's purpose.
+
+**Rule:** when a zero involves a hyphenated, dotted or namespaced identifier, or a decorated comment
+marker, re-run without the syntax assumption before concluding anything:
+
+```bash
+rg -c 'dry.run' FILE        # tolerate any separator
+rg -c 'DATA' FILE           # drop the decoration entirely
+```
+</pattern_capability>
+
 <blind_spots>
 Text search cannot see inside every file. A clean scan over a directory containing these proves nothing about their contents:
 
