@@ -243,12 +243,33 @@ both it and `.gitignore` were tracked separately. Archives of tracked files rot 
 <class id="14" name="A doc-drift guard is the strongest predictor of clean docs">
 Not a defect class — a **countermeasure**, recorded because it is the most effective one observed.
 
-**Measured across six audits, 2026-07-18:** findings per project were 17, 15, 9, 7, 4, 2. The
-**lowest** was `siddetector2`, the only project shipping a machine check that its documentation still
-matches the source: `scripts/check_memorymap.py`, wired into `make ci`. It was executed during that
-audit and reported **0 drift** across 65 matched entries.
+**Measured across six audits, 2026-07-18.** `siddetector2` is the only project shipping a machine
+check that its documentation still matches the source: `scripts/check_memorymap.py`, wired into
+`make ci`. It was executed during that audit and reported **0 drift** across 65 matched entries.
 
 Its single real finding was a test count in `TODO.md` — the one number **not** covered by a guard.
+
+**Normalise by documents actually read before comparing.** Raw finding counts do not support this
+claim, and the first version of this entry wrongly cited them:
+
+| Project | Findings | Docs read | Per doc | Coverage | Guard |
+|---|---|---|---|---|---|
+| `siddetector2` | 2 | 17 | **0.12** | 100% | **yes** |
+| `SIDM2` | 17 | 31 | 0.55 | 16% | no |
+| `sid-reference-project` | 9 | 12 | 0.75 | 2% | no |
+| `retro-guide` | 7 | 5 | 1.40 | 100% | no |
+| `discogs` | 4 | 1 | 4.00 | 100% | no |
+
+Raw counts ran 17, 15, 9, 7, 4, 2 — which reads as a clean ranking and is **confounded**: SIDM2 read
+16% of its documents and still found 17, while `siddetector2` read 100% and found 2. The sequence
+partly measures how much was read.
+
+Per document read, the gap holds and widens: **0.12 against 0.55** for the next lowest, and 33× the
+highest. The conclusion survived; the evidence originally given for it did not.
+
+**Method note, because this is the trap:** an audit's finding count is a function of coverage. Never
+compare two projects' totals without dividing by documents read, and never treat a low count from a
+tiered audit as a clean result — it may only mean little was opened.
 
 Look for one early; it changes what the audit is for:
 

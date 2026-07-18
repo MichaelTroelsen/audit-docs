@@ -133,8 +133,15 @@ for r in sorted(rows,key=lambda r:r['started'],reverse=True):
 Questions the dataset should eventually answer:
 
 - **Does a doc-drift guard in CI reduce findings?** First data point: `siddetector2` ships
-  `check_memorymap.py` in `make ci` and returned 2 findings, against 7–17 elsewhere. One point is
-  not a correlation — it is a hypothesis worth more rows.
+  `check_memorymap.py` in `make ci` and returned **0.12 findings per document read**, against
+  0.55–4.00 elsewhere. One point is not a correlation — it is a hypothesis worth more rows.
+
+  **Always divide by `docs_read_full`.** The raw totals for the same six runs were 17, 15, 9, 7, 4,
+  2, which looks like a clean ranking and is confounded: SIDM2 read 16% of its documents and found
+  17, `siddetector2` read 100% and found 2. Comparing raw counts across a tiered and an untiered
+  audit measures reading effort, not documentation quality. This is why `docs_read_full` and
+  `tier3_not_read` are separate columns rather than a single "docs" field — the first version of
+  this file's guard hypothesis was stated on raw counts and had to be corrected.
 - **Do findings per audit fall on re-audit?** The only real measure of whether filing issues works.
 - **What does an audit cost per finding?** Needs `tokens_main` populated from real usage data.
 - **Is `near_misses` holding up?** A structural falsification of the absence protocol.
